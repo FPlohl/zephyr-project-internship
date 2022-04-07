@@ -1,8 +1,24 @@
-# Zephry Project notes
+# Zephry Project notes <!-- omit in toc -->
+
+- [1. Installation](#1-installation)
+	- [1.1. Dependencies](#11-dependencies)
+	- [1.2. Zephyr and Python dependencies](#12-zephyr-and-python-dependencies)
+	- [1.3. Building and Flashing](#13-building-and-flashing)
+	- [1.4. Supported Boards](#14-supported-boards)
+- [2. Programming](#2-programming)
+	- [2.1. GPIO](#21-gpio)
+	- [2.2. Threads](#22-threads)
+		- [2.2.1. Note on Thread Priorities](#221-note-on-thread-priorities)
+- [3. MCUBoot](#3-mcuboot)
+	- [3.1. Build and Flash Bootloader](#31-build-and-flash-bootloader)
+	- [3.2. Build and Flash Application](#32-build-and-flash-application)
+	- [3.3. Upgrading image](#33-upgrading-image)
+		- [3.3.1. Flashing using pyocd](#331-flashing-using-pyocd)
+		- [3.3.2. Flashing using mcumgr](#332-flashing-using-mcumgr)
 
 ## 1. Installation 
 
-### 1.1 Dependencies
+### 1.1. Dependencies
   
 | Tool | Version |
 |------|---------|
@@ -22,7 +38,7 @@ Download Kitware archive script:
       python3-dev python3-pip python3-setuptools python3-tk python3-wheel xz-utils file \
       make gcc gcc-multilib g++-multilib libsdl2-dev
 
-### 1.2 Zephyr and Python dependencies
+### 1.2. Zephyr and Python dependencies
 
 Install west and adding `~/.local/bin` to `PATH`:
 
@@ -44,7 +60,7 @@ Install additional Python dependencies:
 
     pip3 install --user -r ~/zephyrproject/zephyr/scripts/requirements.txt
 
-## 1.3 Building and Flashing
+### 1.3. Building and Flashing
 
 Build application with west build, changing <your-board-name> to used board and <path/to/application/folder>
 
@@ -57,17 +73,17 @@ To flash application use `west flash`:
 
 Sample applications are located in `/samples`
 
-## 1.4 Supported Boards
+### 1.4. Supported Boards
 
 IDs of supported boards, their device trees and documentations are located in `/boards`
 
 [Reference](https://docs.zephyrproject.org/latest/getting_started/index.html)
 
-# 2. Programming
+## 2. Programming
 
 This chapter includes simple example code for programming with Zephyr SDK. For more information about API go to [API References](https://docs.zephyrproject.org/latest/reference/index.html).
 
-## 2.1 GPIO
+### 2.1. GPIO
 
 Simple blinky example:
 ```cpp
@@ -88,7 +104,7 @@ void main(void)
 
 [GPIO API Reference](https://docs.zephyrproject.org/latest/reference/peripherals/gpio.html)
 
-## 2.2 Threads
+### 2.2. Threads
 
 Thread blinky example:
 ```cpp
@@ -125,16 +141,16 @@ void blink1(void)
 K_THREAD_DEFINE(blink0_id, STACKSIZE, blink0, NULL, NULL, NULL, PRIORITY, 0, 0);
 K_THREAD_DEFINE(blink1_id, STACKSIZE, blink1, NULL, NULL, NULL, PRIORITY, 0, 0);
 ```
-### 2.2.1 Note on Thread Priorities
+#### 2.2.1. Note on Thread Priorities
 
 A thread priority can be a non-negative or negative integer value and is inversly proportional to task priority. If task A has priority of 3 and task B priority of 5,  scheduler gives higher priority to task A.
 
 [Threads API Reference](https://docs.zephyrproject.org/latest/reference/kernel/threads/index.html#api-reference)
 
 
-# 3. MCUBoot
+## 3. MCUBoot
 
-## 3.1 Build and Flash Bootloader
+### 3.1. Build and Flash Bootloader
 
 Build MCUboot bootloader with `west build`:
 
@@ -156,7 +172,7 @@ Output on serial monitor should look like this:
     W: Failed reading image headers; Image=0
     E: Unable to find bootable image
 
-## 3.2 Build and Flash Application
+### 3.2. Build and Flash Application
 
 Building and flashing hello_world sample application:
 
@@ -181,9 +197,9 @@ After restarting the board, serial output should look like this:
 
 [Reference](https://docs.zephyrproject.org/3.0.0/guides/west/sign.html)
 
-## 3.3 Upgrading image
+### 3.3. Upgrading image
 
-### 3.3.1 Flashing using pyocd
+#### 3.3.1. Flashing using pyocd
 
 To flash image to specific address we will use pyocd:
 	
@@ -281,7 +297,7 @@ To upgrade permanently add --confirm to sign image command.
 
 [Other reference](https://github.com/mcu-tools/mcuboot/blob/main/docs/readme-zephyr.md)
 
-### 3.3.2 Flashing using mcumgr
+#### 3.3.2. Flashing using mcumgr
 
 Couldn't get this to work because of Error: NMP timeout when using mcumgr.
 
