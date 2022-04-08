@@ -26,7 +26,7 @@ void main(void)
 
 	while (1) {
 		gpio_pin_toggle_dt(&led0);
-	//	gpio_pin_toggle_dt(&led1);
+		gpio_pin_toggle_dt(&led1);
 		k_msleep(SLEEP_TIME_MS);
 	}
 }

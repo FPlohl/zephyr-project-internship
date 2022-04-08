@@ -22,8 +22,6 @@ NOTE: This document was written with intention of beinge a general guide, but th
     	- [3.4.4. Solving issues](#344-solving-issues)
 
 
-
-
 ## 1. Installation 
 
 ### 1.1. Dependencies
@@ -394,7 +392,19 @@ Run `mcumgr image list` to list images:
 
 	mcumgr --conntype="serial" --connstring="dev=/dev/ttyACM0,baud=115200,mtu=512" image list
 
-insert list
+	Images:
+	 image=0 slot=0
+		version: 0.0.0
+		bootable: true
+		flags: active confirmed
+		hash: 6ec911e7b419d35a616582f74e10f3f0bf20d09d61da35ab84f7d3245526c8f6
+	 image=0 slot=1
+		version: 0.0.0
+		bootable: true
+		flags: 
+		hash: 23998a5ad52ff49107c2104dc5ab68d52e51fccc87b8390164110e916d0067bd
+	Split status: N/A (0)
+
 
 To save connection config use:
 
@@ -412,7 +422,19 @@ Make some changes to main.c, rebuild image and uploade update with `mcumgr image
 
 After upload check run `image list` again to get hash of image in slot 1:
 
-insert list
+	Images:
+	 image=0 slot=0
+		version: 0.0.0
+		bootable: true
+		flags: active confirmed
+		hash: 6ec911e7b419d35a616582f74e10f3f0bf20d09d61da35ab84f7d3245526c8f6
+	 image=0 slot=1
+		version: 0.0.0
+		bootable: true
+		flags: 
+		hash: 320f4fc179f8980065b9eeb222e9e12266da8b8e60fc4ca70c1ad49ba95bbd8a
+	Split status: N/A (0)
+
 
 Test image:
 
