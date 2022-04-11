@@ -212,7 +212,7 @@ After restarting the board, serial output should look like this:
     *** Booting Zephyr OS build zephyr-v3.0.0-2126-g65a2e4b76008  ***
     Hello World from Zephyr on nrf52840dk_nrf52840!
 
-To upgrade images see chapters 3.3. and 3.4.
+To upgrade images see chapters 3.3. and preferably 3.4.
 
 [Reference](https://docs.zephyrproject.org/3.0.0/guides/west/sign.html)
 
@@ -331,7 +331,7 @@ Install `mcumgr` with `go`:
 
 	go install github.com/apache/mynewt-mcumgr-cli/mcumgr@latest
 
-Add go to `PATH`:
+Add `mcumgr` to `PATH`:
 
 	vim ~/.bashrc
 	export PATH="/home/USER/mcumgr/mcumgr":$PATH
@@ -342,6 +342,7 @@ Add go to `PATH`:
 ### 3.4.2. Add DFU support to application
 
 Add these lines to prj.conf:
+	
 	# Enable mcumgr.
 	CONFIG_MCUMGR=y
 
@@ -410,7 +411,7 @@ Config can be accessed with:
 
 	mcumgr -c acm0
 
-Make some changes to main.c, rebuild image and uploade update with `mcumgr image update`:
+Make some changes to main.c, rebuild image and uploade update with `mcumgr image upload`:
 
 	mcumgr <connection-options> image upload -e  [-n] [-u] <signed-bin>
 
