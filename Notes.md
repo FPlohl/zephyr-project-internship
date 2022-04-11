@@ -319,10 +319,6 @@ To upgrade permanently add --confirm to sign image command.
 
 ### 3.4. Flashing with mcumgr
 
-NOTE: Due to poor documentation there were a lot of issues when trying to get mcumgr to work, so there are no guarantees this will work on other platforms.
-
-<br>
-
 ### 3.4.1. Install mcumgr
 
 Install `go`:
@@ -466,7 +462,7 @@ After another reset images will be swaped again. Permanently confirm image:
 
 	mcumgr -c acm0 image confirm
 
-You can swap images again if you perform `test`, `reset` `confirm`.
+You can swap images again if you perform `confirm` with specific hash.
 
 [mcumgr reference](https://docs.zephyrproject.org/latest/services/device_mgmt/mcumgr.html)
 
@@ -488,6 +484,5 @@ Upload `zephyr.signed.bin` not `zephyr.bin` otherwise upload will stall.
 
 [Speed up upload process mcumgr](https://devzone.nordicsemi.com/f/nordic-q-a/86191/mcuboot-slow-with-nrf52840-zephyr-usb-cdc_acm-protocol/359893)
 
-
-
+NOTE: Due to poor documentation there were a lot of issues when trying to get mcumgr to work, so there are no guarantees this will work on other platforms.
 
