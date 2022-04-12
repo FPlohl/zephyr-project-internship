@@ -3,23 +3,27 @@
 NOTE: This document was written with intention of beinge a general guide, but there are some specifics to that apply to nRF52840dk.
 
 - [1. Installation](#1-installation)
-	- [1.1. Dependencies](#11-dependencies)
-	- [1.2. Zephyr and Python dependencies](#12-zephyr-and-python-dependencies)
-	- [1.3. Building and Flashing](#13-building-and-flashing)
-	- [1.4. Supported Boards](#14-supported-boards)
+  * [1.1. Dependencies](#11-dependencies)
+  * [1.2. Zephyr and Python dependencies](#12-zephyr-and-python-dependencies)
+  * [1.3. Building and Flashing](#13-building-and-flashing)
+  * [1.4. Supported Boards](#14-supported-boards)
 - [2. Programming](#2-programming)
-	- [2.1. GPIO](#21-gpio)
-	- [2.2. Threads](#22-threads)
-		- [2.2.1. Note on Thread Priorities](#221-note-on-thread-priorities)
+  * [2.1. GPIO](#21-gpio)
+  * [2.2. Threads](#22-threads)
+    * [2.2.1. Note on Thread Priorities](#221-note-on-thread-priorities)
 - [3. MCUBoot](#3-mcuboot)
-	- [3.1. Build and Flash Bootloader](#31-build-and-flash-bootloader)
-	- [3.2. Flashing with west](#32-flashing-with-west)
-	- [3.3. Flashing with pyocd](#33-flashing-with-pyocd)
-	- [3.4. Flashing with mcumgr](#34-flashing-with-mcumgr)
-    	- [3.4.1. Install mcumgr](#341-install-mcumgr)
-    	- [3.4.2. Add DFU support to application](#342-add-dfu-support-to-application)
-    	- [3.4.3. Testing and upgrading images](#343-testing-and-upgrading-images)
-    	- [3.4.4. Solving issues](#344-solving-issues)
+  * [3.1. Build and Flash Bootloader](#31-build-and-flash-bootloader)
+  * [3.2. Flashing with west](#32-flashing-with-west)
+  * [3.3. Flashing with pyocd](#33-flashing-with-pyocd)
+  * [3.4. Flashing with mcumgr](#34-flashing-with-mcumgr)
+    * [3.4.1. Install mcumgr](#341-install-mcumgr)
+    * [3.4.2. Add DFU support to application](#342-add-dfu-support-to-application)
+    * [3.4.3. Testing and upgrading images](#343-testing-and-upgrading-images)
+  * [3.5. Flashing with mcumgr via Bluetooth](#35-flashing-with-mcumgr-via-bluetooth)
+    * [3.5.1. Add Bluetooth DFU support to application](#351-add-bluetooth-dfu-support-to-application)
+    * [3.5.2. mcumgr](#352-mcumgr)
+    * [3.5.3. nRF Connect for mobile](#353-nrf-connect-for-mobile)
+    * [3.5.4. Solving issues](#354-solving-issues)
 
 
 ## 1. Installation 
@@ -87,7 +91,9 @@ Sample applications are located in `/samples`
 
 ### 1.4. Supported Boards
 
-IDs of supported boards, their device trees and documentations are located in `/boards`
+IDs of supported boards, their device trees and documentations are located in `/boards`. List of supported boards can also be accessed with:
+
+	west boards
 
 [Reference](https://docs.zephyrproject.org/latest/getting_started/index.html)
 
@@ -467,12 +473,93 @@ You can swap images again if you perform `confirm` with specific hash.
 
 [mcumgr reference](https://docs.zephyrproject.org/latest/services/device_mgmt/mcumgr.html)
 
-[Nordic semi reference](https://devzone.nordicsemi.com/guides/nrf-connect-sdk-guides/b/software/posts/ncs-dfu
-)
+[Nordic semi reference](https://devzone.nordicsemi.com/guides/nrf-connect-sdk-guides/b/software/posts/ncs-dfu)
 
 <br>
 
-### 3.4.4. Solving issues
+### 3.5. Flashing with mcumgr via Bluetooth
+
+### 3.5.1. Add Bluetooth DFU support to application
+
+Add these lines to proj.conf:
+
+	# Enable mcumgr.
+	CONFIG_MCUMGR=y
+
+	# Enable most core commands.
+	CONFIG_MCUMGR_CMD_IMG_MGMT=y
+	CONFIG_MCUMGR_CMD_OS_MGMT=y
+
+	# Ensure an MCUboot-compatible binary is generated.
+	CONFIG_BOOTLOADER_MCUBOOT=y
+
+	# Allow for large Bluetooth data packets.
+	CONFIG_BT_L2CAP_TX_MTU=252
+	CONFIG_BT_BUF_ACL_RX_SIZE=256
+
+	# Enable the Bluetooth (unauthenticated) and shell mcumgr transports.
+	CONFIG_MCUMGR_SMP_BT=y
+	CONFIG_MCUMGR_SMP_BT_AUTHEN=n
+
+	# Some command handlers require a large stack.
+	CONFIG_SYSTEM_WORKQUEUE_STACK_SIZE=4096
+
+Add following statements to main.c:
+
+	#include <mgmt/mcumgr/smp_bt.h>
+	#include "os_mgmt/os_mgmt.h"
+	#include "img_mgmt/img_mgmt.h"
+
+Remove the LBS Service UUID from the scan response packet, and replace it with the SMP service UUID:
+
+	BT_DATA_BYTES(BT_DATA_UUID128_ALL,
+		      0x84, 0xaa, 0x60, 0x74, 0x52, 0x8a, 0x8b, 0x86,
+		      0xd3, 0x4c, 0xb7, 0x1d, 0x1d, 0xdc, 0x53, 0x8d),
+
+Put these lines right before bt_conn_cb_register:
+
+	printk("build time: " __DATE__ " " __TIME__ "\n");
+	os_mgmt_register_group();
+	img_mgmt_register_group();
+	smp_bt_register();
+
+Build image the same way as before.
+
+<br>
+
+### 3.5.2. mcumgr
+
+Flashing with mcumgr is very similar to [3.4.3. Testing and upgrading images](#343-testing-and-upgrading-images), we only need to change connection type and connection string. Characters in MAC address need to be lower case. To scan for MAC address we can use `hcitool lescan`.
+
+	sudo mcumgr --conntype ble --connstring ctlr_name=hci0,peer_id=MAC_ADDRESS image upload /path/to/signed.bin
+
+Add new connection config:
+
+	mcumgr conn add blue type="ble" connstring="ctlr_name=hci0,peer_id=<MAC_ADDRESS>" 
+
+Upload example: 
+
+	sudo go/bin/mcumgr -c blue image upload zephyrproject/build-bluetooth-led-signed/zephyr/zephyr.signed.bin
+
+<br>
+
+### 3.5.3. nRF Connect for mobile
+
+Download nRF Connect on smartphone, open the app and hit scan. Tap on CONNECT for desired device.
+
+![nRF Connect device select](images/connect.jpg)
+
+Next tap DFU and select signed binary to upgrade to.
+
+![DFU](images/dfu.jpg)
+
+Select which action you want to perform.
+
+![Action](images/action.jpg)
+
+<br>
+
+### 3.5.4. Solving issues
 
 For nRF52840 disable Mass Storage Device with [JLinkExe](https://www.segger.com/downloads/jlink/)
 
