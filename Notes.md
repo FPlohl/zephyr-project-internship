@@ -23,7 +23,7 @@ NOTE: This document was written with intention of beinge a general guide, but th
     * [3.5.1. Add Bluetooth DFU support to application](#351-add-bluetooth-dfu-support-to-application)
     * [3.5.2. mcumgr](#352-mcumgr)
     * [3.5.3. nRF Connect for mobile](#353-nrf-connect-for-mobile)
-    * [3.5.4. Solving issues](#354-solving-issues)
+  * [3.6. Solving issues](#354-solving-issues)
 
 
 ## 1. Installation 
@@ -560,7 +560,7 @@ Select which action you want to perform.
 
 <br>
 
-### 3.5.4. Solving issues
+### 3.6. Solving issues
 
 For nRF52840 disable Mass Storage Device with [JLinkExe](https://www.segger.com/downloads/jlink/)
 
