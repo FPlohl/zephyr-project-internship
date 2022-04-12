@@ -547,15 +547,16 @@ Upload example:
 
 Download nRF Connect on smartphone, open the app and hit scan. Tap on CONNECT for desired device.
 
-![nRF Connect device select](images/connect.jpg)
+<img src="images/connect.jpg" alt="nRF Connect device select" width="400"/>
 
 Next tap DFU and select signed binary to upgrade to.
 
-![DFU](images/dfu.jpg)
+<img src="images/dfu.jpg" alt="DFU" width="400"/>
 
 Select which action you want to perform.
 
-![Action](images/action.jpg)
+<img src="images/action.jpg" alt="Action" width="400"/>
+
 
 <br>
 
