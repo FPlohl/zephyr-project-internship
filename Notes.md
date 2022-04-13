@@ -55,7 +55,7 @@ Download Kitware archive script:
 
 ### 1.2. Zephyr and Python dependencies
 
-Install west and adding `~/.local/bin` to `PATH`:
+Install `west` and adding `~/.local/bin` to `PATH`:
 
     pip3 install --user -U west
     echo 'export PATH=~/.local/bin:"$PATH"' >> ~/.bashrc
@@ -103,7 +103,7 @@ Install udev rules to flash mose Zephyr boards as regular user:
 
 ### 1.4. Building and Flashing
 
-Build application with west build, changing `<your-board-name>` to used board and `<path/to/application/folder>`:
+Build application with `west build`, changing `<your-board-name>` to used board and `<path/to/application/folder>`:
 
     cd ~/zephyrproject/zephyr
     west build -p auto -b <your-board-name> <path/to/application/folder>
@@ -262,7 +262,7 @@ Build image:
 	west build -b YOUR_BOARD -s zephyr/samples/hello_world -d build-hello-update-signed -- -DCONFIG_BOOTLOADER_MCUBOOT=y -DCONFIG_MCUBOOT_SIGNATURE_KEY_FILE=\"bootloader/mcuboot/root-rsa-2048.pem\"
 
 
-Sign image with imgtool.py. This example uses private key that is publicly available. For production generate your own keys.
+Sign image with `imgtool.py`. This example uses private key that is publicly available. For production generate your own keys, see [3.6. Generating custom key pair](#36-generating-custom-key-pair).
 
 	bootloader/mcuboot/scripts/imgtool.py sign --key bootloader/mcuboot/root-rsa-2048.pem --header-size 0x200 --align 8 --version 1.3 --slot-size 0x67000 --pad build-hello-update-signed/zephyr/zephyr.bin signed-updated-hello.bin
 
@@ -374,7 +374,7 @@ Add `mcumgr` to `PATH`:
 
 ### 3.4.2. Add DFU support to application
 
-Add these lines to prj.conf:
+Add these lines to `prj.conf`:
 	
 	# Enable mcumgr.
 	CONFIG_MCUMGR=y
@@ -397,7 +397,7 @@ Add these lines to prj.conf:
 	# Some command handlers require a large stack.
 	CONFIG_SYSTEM_WORKQUEUE_STACK_SIZE=4096
 
-Add next statemens at the top of main.c
+Add next statemens at the top of main.c:
 
 	#include "os_mgmt/os_mgmt.h"
 	#include "img_mgmt/img_mgmt.h"
@@ -444,7 +444,7 @@ Config can be accessed with:
 
 	mcumgr -c acm0
 
-Make some changes to main.c, rebuild image and uploade update with `mcumgr image upload`:
+Make some changes to main.c, rebuild image and upload update with `mcumgr image upload`:
 
 	mcumgr <connection-options> image upload -e  [-n] [-u] <signed-bin>
 
@@ -508,7 +508,7 @@ You can swap images again if you perform `confirm` with specific hash.
 
 ### 3.5.1. Add Bluetooth DFU support to application
 
-Add these lines to proj.conf:
+Add these lines to `proj.conf`:
 
 	# Enable mcumgr.
 	CONFIG_MCUMGR=y
@@ -543,7 +543,7 @@ Add the SMP service UUID to the scan response packet:
 		      0x84, 0xaa, 0x60, 0x74, 0x52, 0x8a, 0x8b, 0x86,
 		      0xd3, 0x4c, 0xb7, 0x1d, 0x1d, 0xdc, 0x53, 0x8d),
 
-Put these lines right before bt_conn_cb_register:
+Put these lines right before `bt_conn_cb_register`:
 
 	printk("build time: " __DATE__ " " __TIME__ "\n");
 	os_mgmt_register_group();
@@ -556,7 +556,7 @@ Build image the same way as before.
 
 ### 3.5.2. mcumgr
 
-Flashing with mcumgr is very similar to [3.4.3. Testing and upgrading images](#343-testing-and-upgrading-images), we only need to change connection type and connection string. Characters in MAC address need to be lower case. To scan for MAC address we can use `hcitool lescan`.
+Flashing with `mcumgr` is very similar to [3.4.3. Testing and upgrading images](#343-testing-and-upgrading-images), we only need to change connection type and connection string. Characters in MAC address need to be lower case. To scan for MAC address we can use `hcitool lescan`.
 
 	sudo mcumgr --conntype ble --connstring ctlr_name=hci0,peer_id=MAC_ADDRESS image upload /path/to/signed.bin
 
@@ -591,12 +591,12 @@ Select which action you want to perform.
 
 ### 3.6. Generating custom key pair
 
-In order to secure the boot process we need to generate new key pair. 
+Included key pair is publicly available so in order to secure the boot process we need to generate new key pair. 
 	
 	cd ~/zephyrproject/bootloader/mcuboot
 	./scripts/imgtool.py keygen -k myKey.pem -t rsa-2048
 
-We need to edit MCUboot configuration to set `CONFIG_BOOT_SIGNATURE_KEY_FILE` Kconfig value to point to our .pem file. There are two options to do that.
+We need to edit MCUboot configuration to set `CONFIG_BOOT_SIGNATURE_KEY_FILE` Kconfig value to point to our `.pem` file. There are two options to do that.
 
 **Temporary configuration** 
 
