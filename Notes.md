@@ -74,9 +74,33 @@ Install additional Python dependencies:
 
 <br>
 
-### 1.3. Building and Flashing
+### 1.3. Install a Toolchain
 
-Build application with west build, changing <your-board-name> to used board and <path/to/application/folder>
+Download latest Zephyr SDK bundle:
+
+	cd ~
+	wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.14.0/zephyr-sdk-0.14.0_linux-x86_64.tar.gz
+	wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.14.0/sha256.sum | shasum --check --ignore-missing
+
+Extract archive:
+
+	tar xvf zephyr-sdk-0.14.0_linux-x86_64.tar.gz
+
+Run setup script:
+
+	cd zephyr-sdk-0.14.0
+	./setup.sh
+
+Install udev rules to flash mose Zephyr boards as regular user:
+
+	sudo cp ~/zephyr-sdk-0.14.0/sysroots/x86_64-pokysdk-linux/usr/share/openocd/contrib/60-openocd.rules /etc/udev/rules.d
+	sudo udevadm control --reload
+
+<br>
+
+### 1.4. Building and Flashing
+
+Build application with west build, changing `<your-board-name>` to used board and `<path/to/application/folder>`:
 
     cd ~/zephyrproject/zephyr
     west build -p auto -b <your-board-name> <path/to/application/folder>
@@ -89,7 +113,7 @@ Sample applications are located in `/samples`
 
 <br>
 
-### 1.4. Supported Boards
+### 1.5. Supported Boards
 
 IDs of supported boards, their device trees and documentations are located in `/boards`. List of supported boards can also be accessed with:
 
@@ -226,7 +250,7 @@ To upgrade images see chapters 3.3. and preferably 3.4.
 
 ### 3.3. Flashing with pyocd
 
-To flash image to specific address we will use pyocd:
+To flash image to specific address we can use `pyocd`:
 	
 	python3 -mpip install -U pyocd
 
