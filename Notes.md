@@ -25,7 +25,8 @@ This document was written with intention of being a general guide, but there are
       + [3.5.2. mcumgr](#352-mcumgr)
       + [3.5.3. nRF Connect for mobile](#353-nrf-connect-for-mobile)
     + [3.6. Generating custom key pair](#36-generating-custom-key-pair)
-    + [3.7. Solving issues](#37-solving-issues)
+    + [3.7. Add image version](#37-add-image-version)
+    + [3.8. Solving issues](#38-solving-issues)
 
 
 ## 1. Installation 
@@ -617,7 +618,15 @@ To permanently change keys, edit `mcuboot/boot/zephyr/prj.conf` to set the value
 
 <br>
 
-### 3.7. Solving issues
+### 3.7. Add image version
+
+You can add/change image version from 0.0.0 by adding the following line to `proj.conf`:
+
+	CONFIG_MCUBOOT_EXTRA_IMGTOOL_ARGS="--version 1.0.0"
+
+<br>
+
+### 3.8. Solving issues
 
 For nRF52840 disable Mass Storage Device with [JLinkExe](https://www.segger.com/downloads/jlink/)
 
