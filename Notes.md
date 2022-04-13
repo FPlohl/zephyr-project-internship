@@ -3,28 +3,29 @@
 This document was written with intention of being a general guide, but there are some specifics that apply to nRF52840dk.
 
 - [1. Installation](#1-installation)
-  * [1.1. Dependencies](#11-dependencies)
-  * [1.2. Zephyr and Python dependencies](#12-zephyr-and-python-dependencies)
-  * [1.3. Install a Toolchain](#13-install-a-toolchain)
-  * [1.4. Building and Flashing](#13-building-and-flashing)
-  * [1.5. Supported Boards](#14-supported-boards)
+    + [1.1. Dependencies](#11-dependencies)
+    + [1.2. Zephyr and Python dependencies](#12-zephyr-and-python-dependencies)
+    + [1.3. Install a Toolchain](#13-install-a-toolchain)
+    + [1.4. Building and Flashing](#14-building-and-flashing)
+    + [1.5. Supported Boards](#15-supported-boards)
 - [2. Programming](#2-programming)
-  * [2.1. GPIO](#21-gpio)
-  * [2.2. Threads](#22-threads)
-    * [2.2.1. Note on Thread Priorities](#221-note-on-thread-priorities)
+    + [2.1. GPIO](#21-gpio)
+    + [2.2. Threads](#22-threads)
+      + [2.2.1. Note on Thread Priorities](#221-note-on-thread-priorities)
 - [3. MCUBoot](#3-mcuboot)
-  * [3.1. Build and Flash Bootloader](#31-build-and-flash-bootloader)
-  * [3.2. Flashing with west](#32-flashing-with-west)
-  * [3.3. Flashing with pyocd](#33-flashing-with-pyocd)
-  * [3.4. Flashing with mcumgr](#34-flashing-with-mcumgr)
-    * [3.4.1. Install mcumgr](#341-install-mcumgr)
-    * [3.4.2. Add DFU support to application](#342-add-dfu-support-to-application)
-    * [3.4.3. Testing and upgrading images](#343-testing-and-upgrading-images)
-  * [3.5. Flashing with mcumgr via Bluetooth](#35-flashing-with-mcumgr-via-bluetooth)
-    * [3.5.1. Add Bluetooth DFU support to application](#351-add-bluetooth-dfu-support-to-application)
-    * [3.5.2. mcumgr](#352-mcumgr)
-    * [3.5.3. nRF Connect for mobile](#353-nrf-connect-for-mobile)
-  * [3.6. Solving issues](#36-solving-issues)
+    + [3.1. Build and Flash Bootloader](#31-build-and-flash-bootloader)
+    + [3.2. Flashing with west](#32-flashing-with-west)
+    + [3.3. Flashing with pyocd](#33-flashing-with-pyocd)
+    + [3.4. Flashing with mcumgr](#34-flashing-with-mcumgr)
+      + [3.4.1. Install mcumgr](#341-install-mcumgr)
+      + [3.4.2. Add DFU support to application](#342-add-dfu-support-to-application)
+      + [3.4.3. Testing and upgrading images](#343-testing-and-upgrading-images)
+    + [3.5. Flashing via Bluetooth](#35-flashing-via-bluetooth)
+      + [3.5.1. Add Bluetooth DFU support to application](#351-add-bluetooth-dfu-support-to-application)
+      + [3.5.2. mcumgr](#352-mcumgr)
+      + [3.5.3. nRF Connect for mobile](#353-nrf-connect-for-mobile)
+    + [3.6. Generating custom key pair](#36-generating-custom-key-pair)
+    + [3.7. Solving issues](#37-solving-issues)
 
 
 ## 1. Installation 
@@ -502,7 +503,7 @@ You can swap images again if you perform `confirm` with specific hash.
 
 <br>
 
-### 3.5. Flashing with mcumgr via Bluetooth
+### 3.5. Flashing via Bluetooth
 
 ### 3.5.1. Add Bluetooth DFU support to application
 
@@ -535,7 +536,7 @@ Add following statements to main.c:
 	#include "os_mgmt/os_mgmt.h"
 	#include "img_mgmt/img_mgmt.h"
 
-Remove the LBS Service UUID from the scan response packet, and replace it with the SMP service UUID:
+Add the SMP service UUID to the scan response packet:
 
 	BT_DATA_BYTES(BT_DATA_UUID128_ALL,
 		      0x84, 0xaa, 0x60, 0x74, 0x52, 0x8a, 0x8b, 0x86,
@@ -586,7 +587,37 @@ Select which action you want to perform.
 
 <br>
 
-### 3.6. Solving issues
+
+### 3.6. Generating custom key pair
+
+In order to secure the boot process we need to generate new key pair. 
+	
+	cd ~/zephyrproject/bootloader/mcuboot
+	./scripts/imgtool.py keygen -k myKey.pem -t rsa-2048
+
+We need to edit MCUboot configuration to set `CONFIG_BOOT_SIGNATURE_KEY_FILE` Kconfig value to point to our .pem file. There are two options to do that.
+
+**Temporary configuration** 
+
+To set key temporarily:
+
+	west build -t menuconfig -d build-mcuboot
+
+In `menuconfig` interface:
+1. Type `/` to enter search.
+2. Type `BOOT-SIGNATURE_KEY_FILE` to find the option and press `Enter`.
+3. Press `Enter` again to change the value and type absolute path to key file, then press `Enter` to set the new value.
+4. Type `s` to save configuration and accept default file name.
+
+**Permanent configuration**
+
+To permanently change keys, edit `mcuboot/boot/zephyr/prj.conf` to set the value.
+
+[Reference](https://docs.foundries.io/41/howto/zephyr-mcuboot-keys.html#configure-mcuboot-to-use-your-key)
+
+<br>
+
+### 3.7. Solving issues
 
 For nRF52840 disable Mass Storage Device with [JLinkExe](https://www.segger.com/downloads/jlink/)
 
