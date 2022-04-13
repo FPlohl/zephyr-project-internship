@@ -1,6 +1,6 @@
 # Zephry Project notes <!-- omit in toc -->
 
-NOTE: This document was written with intention of beinge a general guide, but there are some specifics to that apply to nRF52840dk.
+This document was written with intention of being a general guide, but there are some specifics that apply to nRF52840dk.
 
 - [1. Installation](#1-installation)
   * [1.1. Dependencies](#11-dependencies)
