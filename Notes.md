@@ -23,7 +23,7 @@ NOTE: This document was written with intention of beinge a general guide, but th
     * [3.5.1. Add Bluetooth DFU support to application](#351-add-bluetooth-dfu-support-to-application)
     * [3.5.2. mcumgr](#352-mcumgr)
     * [3.5.3. nRF Connect for mobile](#353-nrf-connect-for-mobile)
-  * [3.6. Solving issues](#354-solving-issues)
+  * [3.6. Solving issues](#36-solving-issues)
 
 
 ## 1. Installation 
@@ -539,7 +539,8 @@ Add new connection config:
 
 Upload example: 
 
-	sudo go/bin/mcumgr -c blue image upload zephyrproject/build-bluetooth-led-signed/zephyr/zephyr.signed.bin
+	sudo mcumgr -c blue image upload zephyrproject/build-bluetooth-led-signed/zephyr/zephyr.signed.bin
+
 
 <br>
 
@@ -573,5 +574,4 @@ Upload `zephyr.signed.bin` not `zephyr.bin` otherwise upload will stall.
 
 [Speed up upload process mcumgr](https://devzone.nordicsemi.com/f/nordic-q-a/86191/mcuboot-slow-with-nrf52840-zephyr-usb-cdc_acm-protocol/359893)
 
-NOTE: Due to poor documentation there were a lot of issues when trying to get mcumgr to work, so there are no guarantees this will work on other platforms.
-
+[Add command to sudo](https://superuser.com/questions/927512/how-to-set-path-for-sudo-commands)
