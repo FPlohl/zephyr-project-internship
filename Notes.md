@@ -27,6 +27,8 @@ This document was written with intention of being a general guide, but there are
     + [3.6. Generating custom key pair](#36-generating-custom-key-pair)
     + [3.7. Add image version](#37-add-image-version)
     + [3.8. Solving issues](#38-solving-issues)
+- [4. Sleep and current consumption](#4-sleep-and-current-consumption)
+- [5. Bluetooth Low Energy](#5-bluetooth-low-energy)
 
 
 ## 1. Installation 
@@ -677,7 +679,7 @@ Current consumption listed in documentation in busy wait state:
 
 As of writing we are not sure if system uses internal or external oscillator, though our measurements indicate that it's running on internal clock. 
 
-# 5. Zephyr BLE
+## 5. Bluetooth Low Energy
 
 Our task was to program two nRF52840 DKs so that if we press a push button on one board it communicates that to the other board which toggles the LED. For this purpose we modified `/samples/bluetooth/central_hr` and `/samples/bluetooth/peripheral_esp`. Final code is located in `central` and `peripheral_bts`.
 
