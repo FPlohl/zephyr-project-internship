@@ -640,3 +640,44 @@ Upload `zephyr.signed.bin` not `zephyr.bin` otherwise upload will stall.
 [Speed up upload process mcumgr](https://devzone.nordicsemi.com/f/nordic-q-a/86191/mcuboot-slow-with-nrf52840-zephyr-usb-cdc_acm-protocol/359893)
 
 [Add command to sudo](https://superuser.com/questions/927512/how-to-set-path-for-sudo-commands)
+
+
+## 4. Sleep and current consumption
+
+To measure current consumption of MCU in different states we modified `samples/boards/nrf/system_off` example that comes with the SDK.
+
+This example puts system into 5 different states:
+* busy wait
+* busy wait, uart off
+* sleep
+* sleep, uart off
+* deep sleep
+
+When system is put into deep sleep it can only be woken up with external interupt, like a press of a button. Contents of CPU and RAM are not preserved, so the system will be restarted.
+
+We measured current consumption according to [Measuring current](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fug_nrf52840_dk%2FUG%2Fdk%2Fprepare_board.html):
+
+| State | Current consumption - whole board | Current consumption - nRF only |
+|------|---------|---------|
+| busy wait | 3,33 mA| 3,10 mA |
+| busy wait, uart off | 3,10 mA| 3,09 mA |
+| sleep | 755 $\mu$A| 529 $\mu$A |
+| sleep, uart off | 535 $\mu$A| 518 $\mu$A |
+| deep sleep | 15,2 $\mu$A | 0,6 $\mu$A |
+
+Current consumption of system off state from [Product specification documentation](https://infocenter.nordicsemi.com/pdf/nRF52840_PS_v1.1.pdf):
+
+<img src="images/energy table.png" alt="Sleep energy table"/>
+
+Difference between value in documentation and measured value is probably due to ampere meter error.
+
+Current consumption listed in documentation in busy wait state:
+
+<img src="images/energy table cpu running.png" alt="Sleep energy table"/>
+
+As of writing we are not sure if system uses internal or external oscillator, though our measurements indicate that it's running on internal clock. 
+
+# 5. Zephyr BLE
+
+Our task was to program two nRF52840 DKs so that if we press a push button on one board it communicates that to the other board which toggles the LED. For this purpose we modified `/samples/bluetooth/central_hr` and `/samples/bluetooth/peripheral_esp`. Final code is located in `central` and `peripheral_bts`.
+
