@@ -29,6 +29,8 @@ This document was written with intention of being a general guide, but there are
     + [3.8. Solving issues](#38-solving-issues)
 - [4. Sleep and current consumption](#4-sleep-and-current-consumption)
 - [5. Bluetooth Low Energy](#5-bluetooth-low-energy)
+	+ [5.1 Client](#51-client)
+	+ [5.2 Server](#52-server)
 
 
 ## 1. Installation 
@@ -683,3 +685,303 @@ As of writing we are not sure if system uses internal or external oscillator, th
 
 Our task was to program two nRF52840 DKs so that if we press a push button on one board it communicates that to the other board which toggles the LED. For this purpose we modified `/samples/bluetooth/central_hr` and `/samples/bluetooth/peripheral_esp`. Final code is located in `central` and `peripheral_bts`.
 
+### 5.1. Client
+
+Let's first look at `peripheral_bts` which is our client application:
+First we define UUID for our service and button characteristic:
+
+```cpp
+#define BT_UUID_SERVICE_VAL \
+	BT_UUID_128_ENCODE(0xdc8fd89d, 0x5849, 0x468e, 0x951a, 0x7adb3ec6549e)
+
+#define BT_UUID_SERVICE       	BT_UUID_DECLARE_128(BT_UUID_SERVICE_VAL)
+
+#define BT_UUID_BUTTON_VAL \
+	BT_UUID_128_ENCODE(0x9903df36, 0x9e45, 0x4123, 0xab4e, 0x9d564bd70071)
+
+#define BT_UUID_BUTTON			BT_UUID_DECLARE_128(BT_UUID_BUTTON_VAL)
+```
+`bt_ready` function initializes Bluetooth ands starts advertising:
+
+```cpp
+static void bt_ready(void)
+{
+	int err;
+
+	printk("Bluetooth initialized\n");
+
+	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
+	if (err) {
+		printk("Advertising failed to start (err %d)\n", err);
+		return;
+	}
+
+	printk("Advertising successfully started\n");
+}
+```	
+If device found a connection `connected` function will be called:
+
+```cpp
+static void connected(struct bt_conn *conn, uint8_t err)
+{
+	if (err) {
+		printk("Connection failed (err 0x%02x)\n", err);
+	} else {
+		printk("Connected\n");
+	}
+}	
+```	
+
+If device disconnected for some reason, it will call `bt_ready` function to start advertising again.
+
+```cpp
+static void disconnected(struct bt_conn *conn, uint8_t reason)
+{
+	printk("Disconnected (reason 0x%02x)\n", reason);
+	bt_ready();
+}	
+```	
+
+`button_pressed` is callback function which toggles `val` variable and calls `update_state` function to notify server.
+
+```cpp
+void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+	if(cb == &button0_cb_data){
+		val = !val;
+		printk("%d", val);
+		update_state(NULL, &bts_svc.attrs[2], val, &sensor_1);
+	}
+}
+```	
+
+`update_state` notifies the server about value change.
+
+```cpp
+static void update_state(struct bt_conn *conn,
+				const struct bt_gatt_attr *chrc, int16_t value,
+				struct button_sensor *sensor)
+{
+	sensor->button_state = value;
+
+	value = sys_cpu_to_le16(sensor->button_state);
+
+	bt_gatt_notify(conn, chrc, &value, sizeof(value));
+}
+```	
+
+### 5.2. Server
+
+We again define UUID of client and button service.
+
+```cpp
+#define BT_UUID_SERVICE_VAL \
+	BT_UUID_128_ENCODE(0xdc8fd89d, 0x5849, 0x468e, 0x951a, 0x7adb3ec6549e)
+
+#define BT_UUID_SERVICE       	BT_UUID_DECLARE_128(BT_UUID_SERVICE_VAL)
+
+#define BT_UUID_BUTTON_VAL \
+	BT_UUID_128_ENCODE(0x9903df36, 0x9e45, 0x4123, 0xab4e, 0x9d564bd70071)
+
+#define BT_UUID_BUTTON			BT_UUID_DECLARE_128(BT_UUID_BUTTON_VAL)
+```	
+
+First we start scanning for devices.
+
+```cpp
+static void start_scan(void)
+{
+	int err;
+
+	/* This demo doesn't require active scan */
+	err = bt_le_scan_start(BT_LE_SCAN_PASSIVE, device_found);
+	if (err) {
+		printk("Scanning failed to start (err %d)\n", err);
+		return;
+	}
+
+	printk("Scanning successfully started\n");
+}
+```	
+
+If device was found try to connect to it.
+
+```cpp
+static void device_found(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
+			struct net_buf_simple *ad)
+{
+	char addr_str[BT_ADDR_LE_STR_LEN];
+	int err;
+
+	if (default_conn) {
+		return;
+	}
+
+	/* We're only interested in connectable events */
+	if (type != BT_GAP_ADV_TYPE_ADV_IND &&
+		type != BT_GAP_ADV_TYPE_ADV_DIRECT_IND) {
+		return;
+	}
+
+	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
+	printk("Device found: %s (RSSI %d)\n", addr_str, rssi);
+
+	/* connect only to devices in close proximity */
+	if (rssi > -35) {
+		return;
+	}
+
+	if (bt_le_scan_stop()) {
+		return;
+	}
+
+	err = bt_conn_le_create(addr, BT_CONN_LE_CREATE_CONN,
+				BT_LE_CONN_PARAM_DEFAULT, &default_conn);
+	if (err) {
+		printk("Create conn to %s failed (%u)\n", addr_str, err);
+		start_scan();
+	}
+}
+
+static void connected(struct bt_conn *conn, uint8_t err)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	if (err) {
+		printk("Failed to connect to %s (%u)\n", addr, err);
+
+		bt_conn_unref(default_conn);
+		default_conn = NULL;
+
+		start_scan();
+		return;
+	}
+
+	if (conn != default_conn) {
+		return;
+	}
+
+	printk("Connected: %s\n", addr);
+
+	if (conn == default_conn) {
+		memcpy(&uuid, BT_UUID_SERVICE, sizeof(uuid));
+		discover_params.uuid = &uuid.uuid;
+		discover_params.func = discover_func;
+		discover_params.start_handle = BT_ATT_FIRST_ATTRIBUTE_HANDLE;
+		discover_params.end_handle = BT_ATT_LAST_ATTRIBUTE_HANDLE;
+		discover_params.type = BT_GATT_DISCOVER_PRIMARY;
+
+		err = bt_gatt_discover(default_conn, &discover_params);
+		if (err) {
+			printk("Discover failed(err %d)\n", err);
+			return;
+		}
+	}
+}
+```	
+
+If device was disconnected restart scan.
+
+```cpp
+static void disconnected(struct bt_conn *conn, uint8_t reason)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	if (conn != default_conn) {
+		return;
+	}
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	printk("Disconnected: %s (reason 0x%02x)\n", addr, reason);
+
+	bt_conn_unref(default_conn);
+	default_conn = NULL;
+
+	start_scan();
+}
+```
+
+Discover attributes and subscribe to notifications.
+
+```cpp
+static uint8_t discover_func(struct bt_conn *conn,
+				const struct bt_gatt_attr *attr,
+				struct bt_gatt_discover_params *params)
+{
+	int err;
+
+	if (!attr) {
+		printk("Discover complete\n");
+		(void)memset(params, 0, sizeof(*params));
+		bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+		return BT_GATT_ITER_STOP;
+	}
+
+	printk("[ATTRIBUTE] handle %u\n", attr->handle);
+
+	if (!bt_uuid_cmp(discover_params.uuid, BT_UUID_SERVICE)) {
+		memcpy(&uuid, BT_UUID_BUTTON, sizeof(uuid));
+		discover_params.uuid = &uuid.uuid;
+		discover_params.start_handle = attr->handle + 1;
+		discover_params.type = BT_GATT_DISCOVER_CHARACTERISTIC;
+
+		err = bt_gatt_discover(conn, &discover_params);
+		if (err) {
+			printk("Discover failed (err %d)\n", err);
+		}
+	} else if (!bt_uuid_cmp(discover_params.uuid,
+				BT_UUID_BUTTON)) {
+		memcpy(&uuid, BT_UUID_GATT_CCC, sizeof(uuid));
+		discover_params.uuid = &uuid.uuid;
+		discover_params.start_handle = attr->handle + 2;
+		discover_params.type = BT_GATT_DISCOVER_DESCRIPTOR;
+		subscribe_params.value_handle = bt_gatt_attr_value_handle(attr);
+
+		err = bt_gatt_discover(conn, &discover_params);
+		if (err) {
+			printk("Discover failed (err %d)\n", err);
+		}
+	} else {
+		subscribe_params.notify = notify_func;
+		subscribe_params.value = BT_GATT_CCC_NOTIFY;
+		subscribe_params.ccc_handle = attr->handle;
+
+		err = bt_gatt_subscribe(conn, &subscribe_params);
+		if (err && err != -EALREADY) {
+			printk("Subscribe failed (err %d)\n", err);
+		} else {
+			printk("[SUBSCRIBED]\n");
+		}
+		return BT_GATT_ITER_STOP;
+	}
+	return BT_GATT_ITER_STOP;
+}
+```
+
+Toggle LED pin according to notification.
+
+```cpp
+static uint8_t notify_func(struct bt_conn *conn,
+			struct bt_gatt_subscribe_params *params,
+			const void *data, uint16_t length)
+{
+	if (!data) {
+		printk("[UNSUBSCRIBED]\n");
+		params->value_handle = 0U;
+		return BT_GATT_ITER_STOP;
+	}
+	uint8_t state = ((uint8_t *)data)[0];
+	printk("[NOTIFICATION] State %u\n", state);
+	if(state == 1){
+		gpio_pin_set_dt(&led0, 1);
+	}
+	else{
+		gpio_pin_set_dt(&led0, 0);
+	}
+
+	return BT_GATT_ITER_CONTINUE;
+}
+```
