@@ -55,7 +55,6 @@ struct button_sensor {
 	int16_t button_state;
 };
 
-static bool state;
 static struct button_sensor sensor_1 = {
 		.button_state = 0,
 };
@@ -63,7 +62,7 @@ static struct button_sensor sensor_1 = {
 static void button_ccc_cfg_changed(const struct bt_gatt_attr *attr,
 				 uint16_t value)
 {
-	state = value == BT_GATT_CCC_NOTIFY;
+	// do nothing
 }
 
 static void update_state(struct bt_conn *conn,
