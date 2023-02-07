@@ -662,7 +662,7 @@ When system is put into deep sleep it can only be woken up with external interup
 We measured current consumption according to [Measuring current](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fug_nrf52840_dk%2FUG%2Fdk%2Fprepare_board.html) (NOT ACCURATE):
 
 | State | Current consumption|
-|------|---------|---------|
+|------|---------|
 | busy wait | 3,33 mA|
 | busy wait, uart off | 3,10 mA|
 | sleep | 755 $\mu$A|
