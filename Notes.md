@@ -659,15 +659,15 @@ This example puts system into 5 different states:
 
 When system is put into deep sleep it can only be woken up with external interupt, like a press of a button. Contents of CPU and RAM are not preserved, so the system will be restarted.
 
-We measured current consumption according to [Measuring current](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fug_nrf52840_dk%2FUG%2Fdk%2Fprepare_board.html):
+We measured current consumption according to [Measuring current](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fug_nrf52840_dk%2FUG%2Fdk%2Fprepare_board.html) (NOT ACCURATE):
 
-| State | Current consumption - whole board | Current consumption - nRF only |
+| State | Current consumption|
 |------|---------|---------|
-| busy wait | 3,33 mA| 3,10 mA |
-| busy wait, uart off | 3,10 mA| 3,09 mA |
-| sleep | 755 $\mu$A| 529 $\mu$A |
-| sleep, uart off | 535 $\mu$A| 518 $\mu$A |
-| deep sleep | 15,2 $\mu$A | 0,6 $\mu$A |
+| busy wait | 3,33 mA|
+| busy wait, uart off | 3,10 mA|
+| sleep | 755 $\mu$A|
+| sleep, uart off | 535 $\mu$A|
+| deep sleep | 15,2 $\mu$A |
 
 Current consumption of system off state from [Product specification documentation](https://infocenter.nordicsemi.com/pdf/nRF52840_PS_v1.1.pdf):
 
